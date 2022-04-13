@@ -16,7 +16,7 @@
     <result column="email" property="email" jdbcType="VARCHAR" />
     <result column="d_id" property="dId" jdbcType="INTEGER" />
     <association property="dept" javaType="Dept">
-      <result column="dept_id" property="deptId" />
+      <id column="dept_id" property="deptId" />
       <result column="dept_name" property="deptName"/>
     </association>
   </resultMap>
