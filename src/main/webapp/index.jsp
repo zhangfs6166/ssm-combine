@@ -53,57 +53,35 @@
 </div>
 <%--第四行信息--%>
 <div class="row">
-    <div class="col-md-4 col-md-offset-2">
-        当前为第页，总共页，总记录数为条
-    </div>
-    <div class="col-md-6">
-        <nav aria-label="Page navigation">
-            <ul class="pagination">
-                <li><a href="${APP_PATH}/emps?pn=1">首页</a></li>
-                <c:if test="${pageInfo.hasPreviousPage}">
-                    <li>
-                        <a href="${APP_PATH}/emps?pn= ${pageInfo.pageNum -1}" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                </c:if>
-                <c:forEach items="${pageInfo.navigatepageNums}" var="page_Num">
-                    <c:if test="${page_Num == pageInfo.pageNum}">
-                        <li class="active"><a href="#">${page_Num}</a></li>
-                    </c:if>
-                    <c:if test="${page_Num!=pageInfo.pageNum}">
-                        <li><a href="${APP_PATH}/emps?pn=${page_Num}">${page_Num}</a> </li>
-                    </c:if>
-                </c:forEach>
-                <c:if test="${pageInfo.hasNextPage}">
-                    <li>
-                        <a href="${APP_PATH}/emps?pn= ${pageInfo.pageNum + 1}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                </c:if>
-                <li><a href="${APP_PATH}/emps?pn=${pageInfo.pages}">尾页</a></li>
-            </ul>
-        </nav>
-    </div>
+<%--    展示当前页码，页码总数，总数据量--%>
+    <div class="col-md-4 col-md-offset-2" id="pageShow"></div>
+<%--    显示分页导航栏--%>
+    <div class="col-md-6" id="navigate"></div>
 </div>
 <script type="text/javascript">
     //页面加载完成之后，直接发送ajax请求
     $(function () {
-        to_page();
+        to_page(1);
     })
-    //发起请求，得到请求数据
+    //发起请求，得到请求数据，将要跳转的页码赋值给pn
     function to_page(pn) {
         $.ajax({
             url:"${APP_PATH}/emps",
-            data:"pn="+1,
+            data:"pn="+pn,
             type:"GET",
             dataType:"json",
             success:function (result) {
-                build_emps_table(result)
+                console.log(result.extend)
+                //显示查询到的浏览器条数
+                build_emps_table(result);
+                //显示搜索的总体信息
+                build_page_show(result);
+                //页面导航栏
+                build_page_navigate(result);
             }
         })
     }
+    //员工数据显示
     function build_emps_table(result) {
         //清空表格
         $("#emps_table tbody").empty();
@@ -130,7 +108,60 @@
                 .append(BtnTb)
                 .appendTo("#emps_table tbody");
         })
-
+    }
+    //页码条数显示
+    function build_page_show(result) {
+        $("#pageShow").empty();
+        var pageInfo = result.extend.pageInfo;
+        $("#pageShow").append("当前页码为第"+pageInfo.pageNum+"页,共有"
+            +pageInfo.pages+"页,共有"
+            +pageInfo.total+"条数据")
+    }
+    //页码导航栏显示
+    function build_page_navigate(result) {
+        $("#navigate").empty();
+        var pageInfo = result.extend.pageInfo;
+        var ul = $("<ul></ul>").addClass("pagination");
+        var firstLi = $("<li></li>").append($("<a></a>").append("首页"))
+        var upLi = $("<li></li>").append($("<a></a>").append("&laquo;"))
+        if (pageInfo.hasPreviousPage == false){
+            firstLi.addClass("disabled");
+            upLi.addClass("disabled");
+        }else{
+            firstLi.click(function () {
+                to_page(1);
+            })
+            upLi.click(function () {
+                to_page(pageInfo.pageNum-1)
+            })
+        }
+        ul.append(firstLi).append(upLi);
+        $.each(pageInfo.navigatepageNums,function (index,item) {
+            var page = $("<li></li>").append($("<a></a>").append(item))
+            if (pageInfo.pageNum == item){
+                    page.addClass("active");
+            }else {
+                page.click(function () {
+                    to_page(item);
+                })
+            }
+            ul.append(page);
+        })
+        var nextLi = $("<li></li>").append($("<a></a>").append("&raquo;"))
+        var lastLi = $("<li></li>").append($("<a></a>").append("尾页"))
+        if (pageInfo.hasNextPage == false){
+            nextLi.addClass("disabled");
+            lastLi.addClass("disabled");
+        }else{
+            nextLi.click(function () {
+                to_page(pageInfo.pageNum+1);
+            })
+            lastLi.click(function () {
+                to_page(pageInfo.pages)
+            })
+        }
+        var nav=ul.append(nextLi).append(lastLi).appendTo($("<nav></nav>"));
+        $("#navigate").append(nav);
     }
 </script>
 
