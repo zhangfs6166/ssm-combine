@@ -18,7 +18,7 @@ public class EmpServiceImpl implements EmpService {
     EmpMapper empMapper;
     @Override
     public List<Emp> getAll() {
-        List<Emp> emps = empMapper.selectByExample(null);
+        List<Emp> emps = empMapper.selectByExampleWithDept(null);
         return emps;
     }
 }
